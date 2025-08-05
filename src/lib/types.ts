@@ -18,8 +18,6 @@ export interface ISearchedMoviesOrSeries {
   posterImg: string;
   url: string;
   genres: string[];
-  directors: string[];
-  casts: string[];
 }
 
 // Sumber streaming

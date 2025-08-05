@@ -215,17 +215,6 @@
 									{/each}
 								</div>
 								
-								{#if item.directors.length > 0}
-									<div class="text-sm text-gray-400 mb-1">
-										Sutradara: {item.directors[0]}
-									</div>
-								{/if}
-								
-								{#if item.casts.length > 0}
-									<div class="text-sm text-gray-400">
-										Pemain: {item.casts.slice(0, 2).join(', ')}
-									</div>
-								{/if}
 							</div>
 						</a>
 					</div>
@@ -252,18 +241,6 @@
 										<span class="genre-tag">{genre}</span>
 									{/each}
 								</div>
-								
-								{#if item.directors.length > 0}
-									<div class="text-sm text-gray-400 mb-1">
-										Sutradara: {item.directors[0]}
-									</div>
-								{/if}
-								
-								{#if item.casts.length > 0}
-									<div class="text-sm text-gray-400">
-										Pemain: {item.casts.slice(0, 2).join(', ')}
-									</div>
-								{/if}
 							</div>
 						</a>
 					</div>
