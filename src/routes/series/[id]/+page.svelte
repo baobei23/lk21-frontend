@@ -4,7 +4,6 @@
 	import { seriesApi } from '$lib/api.js';
 	import Loading from '$lib/components/Loading.svelte';
 	import SkeletonDetail from '$lib/components/SkeletonDetail.svelte';
-	import LoadingProgress from '$lib/components/LoadingProgress.svelte';
 	import type { ISeriesDetails, IStreamSources } from '$lib/types.js';
 
 	let series: ISeriesDetails | null = $state(null);

@@ -8,8 +8,6 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
 	import SkeletonGrid from '$lib/components/SkeletonGrid.svelte';
-	import LoadingProgress from '$lib/components/LoadingProgress.svelte';
-	import { toast } from '$lib/stores/toast.js';
 	import type { IMovies, ISeries } from '$lib/types.js';
 
 	let movies: IMovies[] = $state([]);
@@ -38,10 +36,7 @@
 			popularMovies = popularMoviesData?.slice(0, 8) || [];
 			popularSeries = popularSeriesData?.slice(0, 8) || [];
 
-			// Show success toast if this was a retry
-			if (retryCount > 0) {
-				toast.success('Berhasil memuat data', 'Konten berhasil dimuat ulang');
-			}
+
 		} catch (err: any) {
 			console.error('Error loading data:', err);
 			
@@ -54,8 +49,7 @@
 				error = 'Terjadi kesalahan saat memuat data';
 			}
 
-			// Show error toast
-			toast.error('Gagal memuat data', error);
+
 		} finally {
 			loading = false;
 		}
@@ -97,16 +91,6 @@
 			</a>
 		</div>
 	</section>
-
-	<!-- Loading Progress -->
-	<div class="mb-8">
-		<LoadingProgress 
-			message="Memuat konten terbaru..." 
-			subMessage="Mengambil data film dan series populer"
-			showProgress={false}
-			animated={true}
-		/>
-	</div>
 
 	<!-- Skeleton Content Sections -->
 	<div class="space-y-12">

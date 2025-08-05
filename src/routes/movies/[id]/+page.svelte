@@ -7,7 +7,6 @@
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
 	import SkeletonDetail from '$lib/components/SkeletonDetail.svelte';
 	import LoadingProgress from '$lib/components/LoadingProgress.svelte';
-	import { toast } from '$lib/stores/toast.js';
 	import type { IMovieDetails, IStreamSources, IDownloads } from '$lib/types.js';
 
 	let movie: IMovieDetails | null = $state(null);
@@ -43,10 +42,7 @@
 			streams = streamsData;
 			downloads = downloadsData;
 
-			// Show success toast if this was a retry
-			if (retryCount > 0) {
-				toast.success('Berhasil memuat detail film', 'Detail film berhasil dimuat ulang');
-			}
+
 		} catch (err: any) {
 			console.error('Error loading movie details:', err);
 			
@@ -62,7 +58,7 @@
 				error = 'Terjadi kesalahan saat memuat detail film';
 			}
 
-			toast.error('Gagal memuat detail film', error);
+
 		} finally {
 			loading = false;
 		}

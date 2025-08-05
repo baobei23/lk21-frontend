@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { filterApi } from '$lib/api.js';
 	import MovieCard from '$lib/components/MovieCard.svelte';
 	import SeriesCard from '$lib/components/SeriesCard.svelte';
 	import Loading from '$lib/components/Loading.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
 	import type { IMovies, ISeries } from '$lib/types.js';
 
 	let content: (IMovies | ISeries)[] = $state([]);
@@ -12,7 +14,9 @@
 	let error = $state('');
 	let currentPage = $state(1);
 	let contentType = $state('movies');
-	let hasMore = $state(true);
+	let totalPages = $state(1);
+	let totalItems = $state(0);
+	let itemsPerPage = $state(24);
 
 	const yearParam = $page.params.year;
 
@@ -39,7 +43,20 @@
 			const data = await filterApi.getByYear(yearParam, isSeries, currentPage);
 			
 			content = data || [];
-			hasMore = data && data.length > 0;
+			
+			// Calculate pagination info
+			// Since API doesn't return total count, we estimate based on results
+			const hasNextPage = data && data.length === itemsPerPage;
+			
+			if (data && data.length > 0) {
+				// Estimate total items (this is approximate)
+				totalItems = hasNextPage ? (currentPage * itemsPerPage) + 1 : ((currentPage - 1) * itemsPerPage) + data.length;
+				// Calculate total pages based on whether there are more results
+				totalPages = hasNextPage ? currentPage + 1 : currentPage;
+			} else {
+				totalItems = 0;
+				totalPages = 1;
+			}
 		} catch (err) {
 			console.error('Error loading content:', err);
 			error = 'Gagal memuat konten. Pastikan server API berjalan.';
@@ -53,13 +70,15 @@
 		const url = new URL(window.location.href);
 		url.searchParams.set('type', type);
 		url.searchParams.delete('page');
-		window.history.pushState({}, '', url.toString());
+		goto(url.toString(), { replaceState: false });
 	}
 
 	function changePage(page: number) {
+		if (page === currentPage) return;
+		
 		const url = new URL(window.location.href);
 		url.searchParams.set('page', page.toString());
-		window.history.pushState({}, '', url.toString());
+		goto(url.toString(), { replaceState: false });
 	}
 
 	onMount(() => {
@@ -133,28 +152,17 @@
 		{/each}
 	</div>
 
-	<!-- Pagination -->
-	<div class="flex justify-center items-center space-x-4">
-		{#if currentPage > 1}
-			<button 
-				class="btn btn-secondary"
-				onclick={() => changePage(currentPage - 1)}
-			>
-				← Sebelumnya
-			</button>
-		{/if}
-		
-		<span class="text-gray-400">
-			Halaman {currentPage}
-		</span>
-		
-		{#if hasMore}
-			<button 
-				class="btn btn-secondary"
-				onclick={() => changePage(currentPage + 1)}
-			>
-				Selanjutnya →
-			</button>
-		{/if}
-	</div>
+	<!-- Enhanced Pagination -->
+	<Pagination
+		{currentPage}
+		{totalPages}
+		{totalItems}
+		{itemsPerPage}
+		{loading}
+		showInfo={true}
+		showFirstLast={true}
+		showPreviousNext={true}
+		maxVisiblePages={5}
+		onPageChange={changePage}
+	/>
 {/if}

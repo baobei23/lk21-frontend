@@ -9,7 +9,7 @@
   export let message: string = 'Loading...';
   export let subMessage: string = '';
   export let count: number = 12;
-  	export let contentType: 'movie' | 'series' = 'movie';
+  export let contentType: 'movie' | 'series' = 'movie';
   export let showProgress: boolean = false;
   export let progress: number = 0;
 </script>

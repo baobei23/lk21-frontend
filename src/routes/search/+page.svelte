@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { filterApi } from '$lib/api.js';
 	import MovieCard from '$lib/components/MovieCard.svelte';
 	import SeriesCard from '$lib/components/SeriesCard.svelte';
@@ -9,8 +10,7 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
 	import SkeletonSearch from '$lib/components/SkeletonSearch.svelte';
-	import LoadingProgress from '$lib/components/LoadingProgress.svelte';
-	import { toast } from '$lib/stores/toast.js';
+	import Pagination from '$lib/components/Pagination.svelte';
 	import type { ISearchedMoviesOrSeries } from '$lib/types.js';
 
 	let results: ISearchedMoviesOrSeries[] = $state([]);
@@ -18,23 +18,34 @@
 	let error = $state('');
 	let errorType = $state<'network' | 'generic'>('generic');
 	let searchQuery = $state('');
+	let currentPage = $state(1);
+	let totalPages = $state(1);
+	let totalItems = $state(0);
+	let itemsPerPage = $state(20);
 	let retryCount = $state(0);
 
 	$effect(() => {
 		const urlParams = new URLSearchParams($page.url.search);
 		const q = urlParams.get('q') || '';
+		const pageNum = parseInt(urlParams.get('page') || '1');
 		
-		if (q !== searchQuery) {
+		if (q !== searchQuery || pageNum !== currentPage) {
 			searchQuery = q;
+			currentPage = pageNum;
+			
 			if (q.trim()) {
-				performSearch(q);
+				performSearch(q, pageNum);
 			} else {
 				results = [];
+				totalItems = 0;
+				totalPages = 1;
 			}
 		}
 	});
 
-	async function performSearch(query: string) {
+	let allResults: ISearchedMoviesOrSeries[] = $state([]);
+
+	async function performSearch(query: string, page: number = 1) {
 		if (!query.trim()) return;
 		
 		loading = true;
@@ -42,12 +53,18 @@
 		
 		try {
 			const data = await filterApi.search(query.trim());
-			results = data || [];
+			allResults = data || [];
+			
+			// Calculate pagination for client-side pagination
+			totalItems = allResults.length;
+			totalPages = Math.ceil(totalItems / itemsPerPage);
+			
+			// Get results for current page
+			const startIndex = (page - 1) * itemsPerPage;
+			const endIndex = startIndex + itemsPerPage;
+			results = allResults.slice(startIndex, endIndex);
 
-			// Show success toast if this was a retry
-			if (retryCount > 0 && results.length > 0) {
-				toast.success('Pencarian berhasil', `Ditemukan ${results.length} hasil untuk "${query}"`);
-			}
+
 		} catch (err: any) {
 			console.error('Error searching:', err);
 			
@@ -61,7 +78,9 @@
 			}
 
 			results = [];
-			toast.error('Pencarian gagal', error);
+			allResults = [];
+			totalItems = 0;
+			totalPages = 1;
 		} finally {
 			loading = false;
 		}
@@ -70,7 +89,7 @@
 	function handleRetry() {
 		retryCount += 1;
 		if (searchQuery.trim()) {
-			performSearch(searchQuery);
+			performSearch(searchQuery, currentPage);
 		}
 	}
 
@@ -82,9 +101,32 @@
 		if (query.trim()) {
 			const url = new URL(window.location.href);
 			url.searchParams.set('q', query.trim());
-			window.history.pushState({}, '', url.toString());
+			url.searchParams.delete('page'); // Reset to page 1 for new search
+			goto(url.toString(), { replaceState: false });
 		}
 	}
+
+	function changePage(page: number) {
+		if (page === currentPage || !searchQuery.trim()) return;
+		
+		const url = new URL(window.location.href);
+		url.searchParams.set('page', page.toString());
+		goto(url.toString(), { replaceState: false });
+	}
+
+	// Handle client-side pagination when page changes
+	function updatePaginatedResults() {
+		if (allResults.length > 0) {
+			const startIndex = (currentPage - 1) * itemsPerPage;
+			const endIndex = startIndex + itemsPerPage;
+			results = allResults.slice(startIndex, endIndex);
+		}
+	}
+
+	// Update results when currentPage changes
+	$effect(() => {
+		updatePaginatedResults();
+	});
 
 	onMount(() => {
 		// Focus search input on mount
@@ -149,7 +191,7 @@
 		<!-- Search Results -->
 		<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
 			{#each results as item}
-				{#if item.type === 'movie'}
+				{#if item.type === 'movies'}
 					<div class="card card-hover">
 						<a href="/movies/{item._id}" class="block">
 							<div class="relative">
@@ -228,29 +270,27 @@
 				{/if}
 			{/each}
 		</div>
-	{:else if !searchQuery}
-		<!-- Empty State -->
-		<EmptyState 
-			icon="search"
-			title="Cari Film dan Series"
-			message="Masukkan kata kunci untuk mencari film atau series favorit Anda"
-		>
-			<div class="max-w-md mx-auto">
-				<form onsubmit={handleSearch}>
-					<div class="flex gap-2">
-						<input 
-							type="text" 
-							name="q"
-							placeholder="Contoh: Avengers, Squid Game..."
-							class="input flex-1"
-						/>
-						<button type="submit" class="btn btn-primary">
-							Cari
-						</button>
-					</div>
-				</form>
+
+		<!-- Search Results Pagination -->
+		{#if totalPages > 1}
+			<div class="mt-8">
+				<Pagination
+					{currentPage}
+					{totalPages}
+					{totalItems}
+					{itemsPerPage}
+					{loading}
+					showInfo={true}
+					showFirstLast={totalPages > 5}
+					showPreviousNext={true}
+					maxVisiblePages={5}
+					onPageChange={changePage}
+				/>
 			</div>
-		</EmptyState>
+		{/if}
+	{:else if !searchQuery}
+		
+		
 	{:else}
 		<!-- No Results State -->
 		<EmptyState 

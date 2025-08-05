@@ -3,7 +3,6 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import ToastContainer from '$lib/components/ToastContainer.svelte';
 
 	let { children } = $props();
 	let mobileMenuOpen = $state(false);
@@ -270,6 +269,5 @@
 		</div>
 	</footer>
 
-	<!-- Toast Notifications -->
-	<ToastContainer />
+
 </div>

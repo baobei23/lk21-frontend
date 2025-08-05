@@ -14,7 +14,7 @@ export interface IMovies {
 export interface ISearchedMoviesOrSeries {
   _id: string;
   title: string;
-  type: "movie" | "series";
+  type: "movies" | "series";
   posterImg: string;
   url: string;
   genres: string[];
