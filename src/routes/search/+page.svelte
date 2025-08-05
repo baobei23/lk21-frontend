@@ -3,9 +3,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { filterApi } from '$lib/api.js';
-	import MovieCard from '$lib/components/MovieCard.svelte';
-	import SeriesCard from '$lib/components/SeriesCard.svelte';
-	import Loading from '$lib/components/Loading.svelte';
+	import SearchCard from '$lib/components/SearchCard.svelte';
 	import NetworkError from '$lib/components/NetworkError.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
@@ -142,7 +140,7 @@
 	<meta name="description" content="Cari film dan series favorit Anda di LK21. Temukan movie dan drama terbaru dengan mudah." />
 </svelte:head>
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-6xl mx-auto px-6 py-8">
 	<div class="mb-8">
 		<h1 class="text-3xl font-bold mb-6">Pencarian</h1>
 		
@@ -153,7 +151,6 @@
 					type="text" 
 					name="q"
 					value={searchQuery}
-					placeholder="Cari film atau series..."
 					class="input flex-1"
 				/>
 				<button type="submit" class="btn btn-primary">
@@ -187,64 +184,11 @@
 			onRetry={handleRetry}
 		/>
 	{/if}
-{:else if results.length > 0}
+	{:else if results.length > 0}
 		<!-- Search Results -->
-		<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+		<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
 			{#each results as item}
-				{#if item.type === 'movies'}
-					<div class="card card-hover">
-						<a href="/movies/{item._id}" class="block">
-							<div class="relative">
-								<img 
-									src={item.posterImg} 
-									alt={item.title}
-									class="w-full h-80 object-cover"
-									loading="lazy"
-								/>
-								<div class="absolute top-2 left-2 bg-blue-600 px-2 py-1 rounded text-xs">
-									Film
-								</div>
-							</div>
-							
-							<div class="p-4">
-								<h3 class="font-semibold text-lg mb-2 line-clamp-2">{item.title}</h3>
-								
-								<div class="flex flex-wrap gap-1 mb-2">
-									{#each item.genres.slice(0, 2) as genre}
-										<span class="genre-tag">{genre}</span>
-									{/each}
-								</div>
-								
-							</div>
-						</a>
-					</div>
-				{:else}
-					<div class="card card-hover">
-						<a href="/series/{item._id}" class="block">
-							<div class="relative">
-								<img 
-									src={item.posterImg} 
-									alt={item.title}
-									class="w-full h-80 object-cover"
-									loading="lazy"
-								/>
-								<div class="absolute top-2 left-2 bg-green-600 px-2 py-1 rounded text-xs">
-									Series
-								</div>
-							</div>
-							
-							<div class="p-4">
-								<h3 class="font-semibold text-lg mb-2 line-clamp-2">{item.title}</h3>
-								
-								<div class="flex flex-wrap gap-1 mb-2">
-									{#each item.genres.slice(0, 2) as genre}
-										<span class="genre-tag">{genre}</span>
-									{/each}
-								</div>
-							</div>
-						</a>
-					</div>
-				{/if}
+				<SearchCard {item} />
 			{/each}
 		</div>
 
@@ -265,9 +209,6 @@
 				/>
 			</div>
 		{/if}
-	{:else if !searchQuery}
-		
-		
 	{:else}
 		<!-- No Results State -->
 		<EmptyState 
@@ -280,11 +221,3 @@
 	{/if}
 </div>
 
-<style>
-	.line-clamp-2 {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-</style>

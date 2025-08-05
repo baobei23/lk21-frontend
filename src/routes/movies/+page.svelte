@@ -4,7 +4,6 @@
 	import { goto } from '$app/navigation';
 	import { moviesApi } from '$lib/api.js';
 	import MovieCard from '$lib/components/MovieCard.svelte';
-	import Loading from '$lib/components/Loading.svelte';
 	import NetworkError from '$lib/components/NetworkError.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
