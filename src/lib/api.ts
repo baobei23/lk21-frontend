@@ -23,22 +23,6 @@ const api = axios.create({
   },
 });
 
-// Menambahkan interceptor untuk menyisipkan token dari localStorage ke header
-api.interceptors.request.use(
-  (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // Movies Endpoints
 export const moviesApi = {
   // Mendapatkan daftar film terbaru
