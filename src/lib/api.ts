@@ -18,7 +18,26 @@ const API_BASE_URL = "http://localhost:8080";
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  headers: {
+    "x-api-key": import.meta.env.VITE_API_KEY || "",
+  },
 });
+
+// Menambahkan interceptor untuk menyisipkan token dari localStorage ke header
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Movies Endpoints
 export const moviesApi = {
