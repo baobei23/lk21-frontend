@@ -2,11 +2,9 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { moviesApi } from '$lib/api.js';
-	import Loading from '$lib/components/Loading.svelte';
 	import NetworkError from '$lib/components/NetworkError.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
 	import SkeletonDetail from '$lib/components/SkeletonDetail.svelte';
-	import LoadingProgress from '$lib/components/LoadingProgress.svelte';
 	import type { IMovieDetails, IStreamSources, IDownloads } from '$lib/types.js';
 
 	let movie: IMovieDetails | null = $state(null);
@@ -42,11 +40,14 @@
 			streams = streamsData;
 			downloads = downloadsData;
 
+			// Default to stream tab if streams are available
+			if (streams.length > 0) {
+				activeTab = 'stream';
+			}
 
 		} catch (err: any) {
 			console.error('Error loading movie details:', err);
 			
-			// Determine error type
 			if (err.response?.status === 404) {
 				errorType = 'notfound';
 				error = 'Film tidak ditemukan';
@@ -57,7 +58,6 @@
 				errorType = 'generic';
 				error = 'Terjadi kesalahan saat memuat detail film';
 			}
-
 
 		} finally {
 			loading = false;
@@ -78,15 +78,19 @@
 			window.open(movie.trailerUrl, '_blank');
 		}
 	}
+
+	function openStream(url: string) {
+		window.open(url, '_blank');
+	}
 </script>
 
 <svelte:head>
 	{#if movie}
 		<title>{movie.title} - LK21 Streaming</title>
-		<meta name="description" content="{movie.synopsis.slice(0, 150)}..." />
-		<meta property="og:title" content="{movie.title}" />
-		<meta property="og:description" content="{movie.synopsis.slice(0, 150)}..." />
-		<meta property="og:image" content="{movie.posterImg}" />
+		<meta name="description" content={movie.synopsis.slice(0, 150) + '...'} />
+		<meta property="og:title" content={movie.title} />
+		<meta property="og:description" content={movie.synopsis.slice(0, 150) + '...'} />
+		<meta property="og:image" content={movie.posterImg} />
 	{:else}
 		<title>Detail Film - LK21 Streaming</title>
 	{/if}
@@ -171,22 +175,6 @@
 							🎬 Tonton Trailer
 						</button>
 					{/if}
-					{#if streams.length > 0}
-						<button 
-							class="btn btn-secondary"
-							onclick={() => activeTab = 'stream'}
-						>
-							▶️ Streaming
-						</button>
-					{/if}
-					{#if downloads.length > 0}
-						<button 
-							class="btn btn-secondary"
-							onclick={() => activeTab = 'download'}
-						>
-							⬇️ Download
-						</button>
-					{/if}
 				</div>
 			</div>
 		</div>
@@ -233,28 +221,23 @@
 
 		<!-- Tab Content -->
 		{#if activeTab === 'stream' && streams.length > 0}
-			<div class="grid gap-4">
-				{#each streams as stream}
-					<div class="card p-4">
-						<div class="flex items-center justify-between">
-							<div>
-								<h3 class="font-semibold mb-1">{stream.provider}</h3>
-								<div class="flex gap-2">
-									{#each stream.resolutions as resolution}
-										<span class="bg-gray-700 px-2 py-1 rounded text-xs">{resolution}</span>
-									{/each}
-								</div>
+			<div>
+				<h3 class="text-xl font-semibold mb-4">Pilih Sumber Streaming</h3>
+				<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{#each streams as stream, index (stream.url)}
+						<button 
+							class="card p-4 text-left transition-colors hover:bg-gray-700"
+							onclick={() => openStream(stream.url)}
+						>
+							<h4 class="font-semibold mb-1">{stream.provider || `Sumber ${index + 1}`}</h4>
+							<div class="flex gap-2">
+								{#each stream.resolutions as resolution}
+									<span class="bg-gray-600 px-2 py-1 rounded text-xs">{resolution}</span>
+								{/each}
 							</div>
-							<a 
-								href={stream.url} 
-								target="_blank"
-								class="btn btn-primary"
-							>
-								Tonton
-							</a>
-						</div>
-					</div>
-				{/each}
+						</button>
+					{/each}
+				</div>
 			</div>
 		{:else if activeTab === 'download' && downloads.length > 0}
 			<div class="grid gap-4">

@@ -264,7 +264,7 @@
 	<footer class="bg-gray-800 border-t border-gray-700 mt-16">
 		<div class="container mx-auto px-4 py-8">
 			<div class="text-center text-gray-400">
-				<p>&copy; 2024 LK21 Streaming. Dibuat dengan SvelteKit.</p>
+				<p>&copy; 2025 LK21 Streaming.</p>
 			</div>
 		</div>
 	</footer>
