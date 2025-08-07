@@ -18,14 +18,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 60000,
-  headers: {
-    "x-api-key": import.meta.env.VITE_API_KEY || "",
-  },
 });
 
 // Simple in-memory cache
 const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION_MS = 5 * 60 * 1000;
+const CACHE_DURATION_MS = 30 * 60 * 1000;
 
 async function getWithCache<T>(url: string): Promise<T> {
   const now = Date.now();
